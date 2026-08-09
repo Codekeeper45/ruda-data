@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "kind": "audited-enriched",
+  "release": "v1.6.0",
+  "asset_name": "app.db",
+  "data_version": "2026-08-08T18:23:46.411Z",
+  "sha256": "7358e0752366dbf0f27d5ea49e3ed7355dba8570c73b042a9afd4cedca37d556",
+  "size_bytes": 550047744,
+  "source_sha256": "5d065cf362996ea6c3146c4af7cbdb201c73a2f7dec3dd43b914950254aaf353",
+  "verification": {
+    "sqlite_integrity_check": "ok",
+    "foreign_key_errors": 0,
+    "videos": 127,
+    "rounds": 113,
+    "utterances": 31033,
+    "semantic_documents": 9556,
+    "embedding_vectors": 9556
+  },
+  "published_at": "2026-08-09"
+}
