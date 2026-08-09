@@ -1,14 +1,14 @@
-# RUDA — audited archive database
+# RUDA — raw unenriched source snapshot
 
-The production `app.db` is published as a GitHub Release asset rather than a
-Git blob. This keeps the repository usable while preserving an immutable,
-checksum-addressed database release.
+This branch preserves the source database from before the manual enrichment
+and materialized audit. The SQLite file is published as the `app.db` asset of
+release `raw-v1.0.0`; it is not stored as a Git blob.
 
-- Current release: `v1.6.0`
-- Kind: manually audited and materialized archive
-- Internal data version: `2026-08-08T18:23:46.411Z`
+- Kind: untouched pre-audit source snapshot
+- Release: `raw-v1.0.0`
 - Asset: `app.db`
-- SHA-256: `7358e0752366dbf0f27d5ea49e3ed7355dba8570c73b042a9afd4cedca37d556`
+- SHA-256: `5d065cf362996ea6c3146c4af7cbdb201c73a2f7dec3dd43b914950254aaf353`
 
-The untouched pre-audit source snapshot is maintained on the
-`raw-unenriched` branch and published by its own `raw-v*` release.
+This is byte-for-byte source preservation, not the production database. Its
+42 inherited foreign-key warnings are recorded in the manifest and are fixed
+only in the audited `master` release.
