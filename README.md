@@ -1,14 +1,27 @@
-# RUDA — audited archive database
+# RUDA — базы данных архива
 
-The production `app.db` is published as a GitHub Release asset rather than a
-Git blob. This keeps the repository usable while preserving an immutable,
-checksum-addressed database release.
+Файлы `app.db` публикуются как GitHub Release assets, а не как тяжёлые Git blobs. Каждый релиз закреплён версией и контрольной суммой.
 
-- Current release: `v1.6.0`
-- Kind: manually audited and materialized archive
-- Internal data version: `2026-08-08T18:23:46.411Z`
-- Asset: `app.db`
-- SHA-256: `7358e0752366dbf0f27d5ea49e3ed7355dba8570c73b042a9afd4cedca37d556`
+## Скачать
 
-The untouched pre-audit source snapshot is maintained on the
-`raw-unenriched` branch and published by its own `raw-v*` release.
+### Готовая обогащённая БД — рекомендуется
+
+[Скачать актуальную обогащённую БД v1.6.0](https://github.com/Codekeeper45/ruda-data/releases/tag/v1.6.0)
+
+- ветка: `master`;
+- содержит вручную проверенные и материализованные раунды, роли, составы, исправления и поисковые данные;
+- внутренняя версия данных: `2026-08-08T18:23:46.411Z`;
+- SHA-256: `7358e0752366dbf0f27d5ea49e3ed7355dba8570c73b042a9afd4cedca37d556`;
+- это основной релиз, отмеченный GitHub как **Latest**.
+
+### Чистая необогащённая БД
+
+[Скачать чистую исходную БД raw-v1.0.0](https://github.com/Codekeeper45/ruda-data/releases/tag/raw-v1.0.0)
+
+- ветка: `raw-unenriched`;
+- содержит исходный снимок до аналитического обогащения;
+- предназначена для повторного анализа или сравнения с готовой версией.
+
+## История версий
+
+Релизы `v1.0.0`–`v1.5.0` оставлены как история предыдущих обогащённых версий. Для обычного использования выбирайте `v1.6.0`; для исходных данных — `raw-v1.0.0`.
