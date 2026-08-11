@@ -275,6 +275,17 @@ def dashboard(request: Request):
         )
 
 
+@app.post("/processing/resume")
+def resume_processing():
+    """Resume the local worker after the operator fixes an account-level error."""
+    with SessionLocal() as session:
+        set_setting(session, "processing_paused", "0")
+        set_setting(session, "processing_pause_reason", "")
+        session.commit()
+    worker.last_error = None
+    return redirect("/", "Очередь Speechmatics возобновлена")
+
+
 @app.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request):
     with SessionLocal() as session:

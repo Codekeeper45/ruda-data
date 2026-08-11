@@ -21,7 +21,12 @@
 <div class="callout warning"><strong>Очередь приостановлена.</strong> Готовые результаты доступны, но новые файлы в Speechmatics сейчас не отправляются.</div>
 {% endif %}
 {% if processing_paused %}
-<div class="callout warning"><strong>Speechmatics остановил очередь.</strong> {{ processing_pause_reason }}</div>
+<div class="callout warning">
+  <strong>Speechmatics остановил очередь.</strong> {{ processing_pause_reason }}
+  <form method="post" action="/processing/resume" class="row-actions">
+    <button class="button small" type="submit">Возобновить после исправления причины</button>
+  </form>
+</div>
 {% endif %}
 
 <section class="stats-grid">
