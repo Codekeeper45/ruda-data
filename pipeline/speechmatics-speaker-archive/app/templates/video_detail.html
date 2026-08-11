@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Видео #{{ video.id }}</p><h1>{{ video.title }}</h1><p class="mono clip-path">{{ video.source_path }}</p></div>
+  <div class="row-actions">
+    {% if video.status == 'completed' %}
+      <a class="button" href="/videos/{{ video.id }}/export/json">JSON</a><a class="button" href="/videos/{{ video.id }}/export/csv">CSV</a><a class="button" href="/videos/{{ video.id }}/export/srt">SRT</a><a class="button" href="/videos/{{ video.id }}/export/vtt">VTT</a><a class="button" href="/videos/{{ video.id }}/export/txt">TXT</a><a class="button" href="/videos/{{ video.id }}/export/raw">RAW</a>
+    {% endif %}
+    {% if video.status == 'failed' %}<form method="post" action="/videos/{{ video.id }}/retry"><button class="button primary">Повторить</button></form>{% endif %}
+  </div>
+</div>
+<section class="meta-grid">
+  <div><span>Статус</span><strong><span class="badge {{ video.status }}">{{ video.status }}</span></strong></div>
+  <div><span>Длительность</span><strong>{{ video.duration_seconds|duration }}</strong></div>
+  <div><span>Исходник</span><strong>{{ video.source_size_bytes|filesize }}</strong></div>
+  <div><span>Upload-файл</span><strong>{{ video.prepared_size_bytes|filesize if video.prepared_size_bytes else '—' }}</strong></div>
+  <div><span>Модель</span><strong>{{ video.model }} / {{ video.language }}</strong></div>
+  <div><span>Job ID</span><strong class="mono">{{ video.remote_job_id or '—' }}</strong></div>
+</section>
+{% if video.error_message %}<div class="callout error-box">{{ video.error_message }}</div>{% endif %}
+
+{% if video.speakers %}
+<section class="panel">
+  <div class="panel-header"><h2>Спикеры</h2><span>{{ video.speakers|length }}</span></div>
+  <div class="speaker-grid">
+  {% for sp in video.speakers|sort(attribute='total_speech_seconds', reverse=true) %}
+    <form class="speaker-card" method="post" action="/videos/{{ video.id }}/speakers/{{ sp.id }}">
+      <div class="speaker-top"><strong>{{ sp.display_name }}</strong><span class="badge {{ 'completed' if sp.is_known else 'queued' }}">{{ 'профиль' if sp.is_known else sp.label }}</span></div>
+      <div class="subtle">{{ sp.utterance_count }} реплик · {{ sp.total_speech_seconds|duration }}</div>
+      <select name="profile_id"><option value="">Не привязывать к профилю</option>{% for profile in profiles %}<option value="{{ profile.id }}" {{ 'selected' if sp.profile_id == profile.id else '' }}>{{ profile.name }}</option>{% endfor %}</select>
+      <input name="display_name" value="{{ sp.display_name }}" placeholder="Ручная подпись">
+      <button class="button small">Сохранить</button>
+    </form>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-header"><div><h2>Реплики</h2><span class="subtle">{{ total }} найдено</span></div></div>
+  <form class="filters" method="get">
+    <input name="q" value="{{ q }}" placeholder="Поиск по тексту">
+    <select name="speaker"><option value="">Все спикеры</option>{% for sp in video.speakers %}<option value="{{ sp.label }}" {{ 'selected' if selected_speaker == sp.label else '' }}>{{ sp.display_name }}</option>{% endfor %}</select>
+    <button class="button" type="submit">Фильтр</button>
+  </form>
+  {% if utterances %}<div class="transcript">
+    {% for row in utterances %}
+      <article class="utterance">
+        <div class="utterance-meta"><a href="?speaker={{ row.speaker.label }}">{{ row.speaker.display_name }}</a><span>{{ row.start_time|timestamp }} → {{ row.end_time|timestamp }}</span><span>{{ '%.1f%%'|format(row.average_confidence * 100) if row.average_confidence is not none else '—' }}</span></div>
+        <p>{{ row.text }}</p>
+      </article>
+    {% endfor %}
+  </div>{% else %}<p class="empty">Реплик пока нет или фильтр ничего не нашёл.</p>{% endif %}
+</section>
+{% if pages > 1 %}<nav class="pagination">{% for n in range(1, pages + 1) %}<a class="{{ 'active' if n == page else '' }}" href="?page={{ n }}&speaker={{ selected_speaker }}&q={{ q }}">{{ n }}</a>{% endfor %}</nav>{% endif %}
+{% endblock %}

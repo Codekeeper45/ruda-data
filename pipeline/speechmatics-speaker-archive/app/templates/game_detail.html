@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Раунд {{ game.round_number }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Видео #{{ video.id }} · раунд {{ game.round_number }}</p><h1>{{ video.title }}</h1><p>{{ game.start_time|timestamp }} → {{ game.end_time|timestamp }}</p></div>
+  <div class="row-actions"><a class="button" href="/videos/{{ video.id }}">Все реплики</a><a class="button" href="/search?video_id={{ video.id }}&round_id={{ game.id }}">Искать в раунде</a></div>
+</div>
+<section class="panel" id="round-review">
+  <div class="panel-header"><h2>Итог игры</h2><span class="badge {{ 'completed' if game.review_status in ['confirmed','auto_verified'] else 'queued' }}">{{ game.review_status|review_status_label }}</span></div>
+  <form class="form-grid enrichment-form" method="post" action="/games/{{ game.id }}/review">
+    <label>Начало, секунд<input type="number" step="0.01" name="start_time" value="{{ game.start_time }}"></label>
+    <label>Конец, секунд<input type="number" step="0.01" name="end_time" value="{{ game.end_time }}"></label>
+    <label>Победившая сторона<select name="winning_faction">{% for value in ['civilians','mafia','neutral','draw','unknown'] %}<option value="{{ value }}" {{ 'selected' if game.winning_faction == value else '' }}>{{ value|faction_label }}</option>{% endfor %}</select></label>
+    <label>Состояние<select name="review_status">{% for value in ['confirmed','needs_review','unknown'] %}<option value="{{ value }}" {{ 'selected' if game.review_status == value else '' }}>{{ value|review_status_label }}</option>{% endfor %}</select></label>
+    <label class="full">Итог<textarea name="winner_summary" rows="3">{{ game.winner_summary or '' }}</textarea></label>
+    <div class="full form-actions"><button class="button primary">Сохранить и подтвердить</button></div>
+  </form>
+  {% for item in evidence.get('round:' ~ game.id, []) %}
+  <div class="evidence-row"><strong>{{ item.field_name }}</strong> · {{ item.start_time|timestamp if item.start_time is not none else 'кадр' }} · {{ item.excerpt }}
+  {% if item.start_time is not none %}<audio controls preload="none" src="/videos/{{ video.id }}/clip?start={{ [item.start_time-1,0]|max }}&end={{ item.end_time+2 }}"></audio>{% endif %}</div>
+  {% endfor %}
+</section>
+
+<section class="panel">
+  <div class="panel-header"><h2>Участники и фактические роли</h2><span>{{ participants|length }}</span></div>
+  <div class="speaker-grid">
+  {% for participant, role in participants %}
+    <form id="participant-{{ participant.id }}" class="speaker-card enrichment-form" method="post" action="/games/{{ game.id }}/participants/{{ participant.id }}">
+      <div class="speaker-top"><strong>{{ participant.display_name }}</strong><span class="badge {{ 'completed' if participant.review_status in ['confirmed','auto_verified'] else 'queued' }}">{{ participant.review_status|review_status_label }}</span></div>
+      <label>Фактическая роль<select name="role_id"><option value="">Неизвестна</option>{% for item in roles %}<option value="{{ item.id }}" {{ 'selected' if participant.role_id == item.id else '' }}>{{ item.name }}</option>{% endfor %}</select></label>
+      <label>Фракция<select name="faction">{% for value in ['civilians','mafia','neutral','unknown'] %}<option value="{{ value }}" {{ 'selected' if participant.faction == value else '' }}>{{ value|faction_label }}</option>{% endfor %}</select></label>
+      <label>Исход<select name="outcome">{% for value in ['won','lost','unknown'] %}<option value="{{ value }}" {{ 'selected' if participant.outcome == value else '' }}>{{ value|outcome_label }}</option>{% endfor %}</select></label>
+      <input type="hidden" name="review_status" value="confirmed">
+      <div class="subtle">Участие {{ '%.0f%%'|format((participant.confidence or 0)*100) }} · роль {{ '%.0f%%'|format((participant.role_confidence or 0)*100) }}</div>
+      {% for item in evidence.get('participant:' ~ participant.id, []) %}<div class="subtle">{{ item.source_type }} · {{ item.excerpt }}</div>{% endfor %}
+      <button class="button small">Подтвердить</button>
+    </form>
+  {% endfor %}
+  </div>
+</section>
+
+<section class="panel" id="phases">
+  <div class="panel-header"><h2>Фазы и ночи</h2><span>{{ phases|selectattr('phase_type','equalto','night')|list|length }} ночей</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Фаза</th><th>Номер</th><th>Границы</th><th>Уверенность</th><th></th></tr></thead><tbody>
+  {% for phase in phases %}<tr><td>{{ phase.phase_type|phase_type_label }}</td><td>{{ phase.phase_number or '—' }}</td><td>{{ phase.start_time|timestamp }} → {{ phase.end_time|timestamp }}</td><td>{{ '%.0f%%'|format((phase.confidence or 0)*100) }}</td><td><form class="enrichment-form" method="post" action="/games/{{ game.id }}/phases/{{ phase.id }}/delete"><button class="button small">Удалить</button></form></td></tr>{% endfor %}
+  </tbody></table></div>
+  <form class="filters enrichment-form" method="post" action="/games/{{ game.id }}/phases">
+    <select name="phase_type">{% for value in ['night','day','voting','result','intermission'] %}<option value="{{ value }}">{{ value|phase_type_label }}</option>{% endfor %}</select>
+    <input type="number" name="phase_number" min="1" value="1" aria-label="Номер">
+    <input type="number" step="0.01" name="start_time" placeholder="Начало, сек" required>
+    <input type="number" step="0.01" name="end_time" placeholder="Конец, сек" required>
+    <button class="button">Добавить фазу</button>
+  </form>
+</section>
+
+{% if events %}<section class="panel"><h2>События</h2><div class="transcript">{% for event in events %}<article class="utterance"><div class="utterance-meta"><strong>{{ event.event_type }}</strong><span>{{ event.start_time|timestamp }}</span><span>{{ '%.0f%%'|format((event.confidence or 0)*100) }}</span></div><p>{{ event.summary }}</p><audio controls preload="none" src="/videos/{{ video.id }}/clip?start={{ [event.start_time-1,0]|max }}&end={{ event.end_time+2 }}"></audio></article>{% endfor %}</div></section>{% endif %}
+<div class="review-toast" data-review-toast role="status" aria-live="polite"></div>
+{% endblock %}

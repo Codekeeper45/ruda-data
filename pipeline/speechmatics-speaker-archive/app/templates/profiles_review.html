@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Проверка голосов — {{ app_name }}{% endblock %}
+{% block content %}
+<section class="review-hero">
+  <div>
+    <p class="eyebrow">Контроль перед регистрацией</p>
+    <h1>Прослушай голос. Подтверди персонажа.</h1>
+    <p>Автоматическая проверка уже нашла технические дефекты, дубли и подозрительное сходство с чужими папками. Финальное решение о личности голоса принимаешь ты.</p>
+  </div>
+  <div class="review-score" aria-label="Прогресс проверки профилей">
+    <strong data-progress-label>{{ totals.approved_profiles }}/{{ totals.profiles }}</strong>
+    <span>профилей подтверждено</span>
+    <div class="progress-track"><i data-progress-bar style="width:{{ (totals.approved_profiles / totals.profiles * 100) if totals.profiles else 0 }}%"></i></div>
+  </div>
+</section>
+
+<section class="review-stats">
+  <div><strong>{{ totals.samples }}</strong><span>всего клипов</span></div>
+  <div class="good"><strong data-stat-approved-samples>{{ totals.approved_samples }}</strong><span>подтверждено</span></div>
+  <div class="warn"><strong>{{ totals.warning_samples }}</strong><span>автопредупреждений</span></div>
+  <div class="bad"><strong>{{ totals.blocked_samples }}</strong><span>заблокировано</span></div>
+  <div class="selected"><strong data-stat-selected>{{ totals.selected_samples }}/50</strong><span>голосовых эталонов</span></div>
+</section>
+
+<div class="review-toast" data-review-toast role="status" aria-live="polite" aria-atomic="true"></div>
+
+<section class="review-toolbar panel">
+  <label>Найти персонажа<input type="search" data-profile-search placeholder="Например, ЧатГПТ"></label>
+  <label>Показать
+    <select data-profile-filter>
+      <option value="all">Все профили</option>
+      <option value="pending">Без решения</option>
+      <option value="approved">Подтверждённые</option>
+      <option value="rejected">Отклонённые</option>
+      <option value="issues">С предупреждениями</option>
+    </select>
+  </label>
+  <div class="review-legend">
+    <span><i class="legend-dot good"></i> проверка пройдена</span>
+    <span><i class="legend-dot warn"></i> нужно внимательно слушать</span>
+    <span><i class="legend-dot bad"></i> нельзя отправлять</span>
+  </div>
+</section>
+
+<div class="profile-review-list">
+{% for profile in profiles %}
+  {% set profile_status = profile.review.manual_status if profile.review else 'pending' %}
+  {% set issue_count = profile.samples|selectattr('audit')|selectattr('audit.quality_status', 'ne', 'good')|list|length %}
+  {% set approved_count = profile.samples|selectattr('audit')|selectattr('audit.manual_status', 'equalto', 'approved')|list|length %}
+  {% set selected_count = profile.samples|selectattr('audit')|selectattr('audit.selected_for_enrollment')|list|length %}
+  <article class="profile-review {{ profile_status }}" id="profile-{{ profile.id }}"
+    data-profile-id="{{ profile.id }}" data-profile-name="{{ profile.name|lower }}"
+    data-profile-status="{{ profile_status }}" data-profile-issues="{{ issue_count }}">
+    <header class="profile-review-head">
+      <div class="review-avatar">{{ profile.name[:1]|upper }}</div>
+      <div class="profile-review-title">
+        <p class="eyebrow">Профиль {{ '%02d'|format(loop.index) }}</p>
+        <h2>{{ profile.name }}</h2>
+        <p data-profile-summary>{{ profile.samples|length }} клипов · {{ approved_count }} подтверждено · {{ selected_count }} из 2 эталонов выбрано</p>
+      </div>
+      <span class="decision-pill {{ profile_status }}">
+        {% if profile_status == 'approved' %}подтверждён{% elif profile_status == 'rejected' %}отклонён{% else %}ждёт решения{% endif %}
+      </span>
+    </header>
+
+    <div class="sample-review-grid">
+    {% for sample in profile.samples|sort(attribute='original_filename') %}
+      {% set audit = sample.audit %}
+      <section class="sample-review-card {{ audit.quality_status if audit else 'warning' }} {{ audit.manual_status if audit else 'pending' }}" data-sample-id="{{ sample.id }}">
+        <div class="sample-card-top">
+          <div><strong title="{{ sample.original_filename }}">{{ sample.original_filename }}</strong><span>{{ '%.1f'|format(sample.duration_seconds or 0) }} сек.</span></div>
+          <div class="sample-badges">
+            {% if audit %}
+              <span class="quality-pill {{ audit.quality_status }}">{% if audit.quality_status == 'good' %}чисто{% elif audit.quality_status == 'blocked' %}блок{% else %}проверить{% endif %}</span>
+              {% if audit.selected_for_enrollment %}<span class="quality-pill selected">эталон</span>{% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        <audio controls preload="none" src="/samples/{{ sample.id }}/audio"></audio>
+
+        {% if audit %}
+        <dl class="sample-metrics">
+          <div><dt>Громкость</dt><dd>{{ '%.1f дБ'|format(audit.rms_dbfs) if audit.rms_dbfs is not none else '—' }}</dd></div>
+          <div><dt>В своей папке</dt><dd>{{ '%.3f'|format(audit.within_profile_similarity) if audit.within_profile_similarity is not none else '—' }}</dd></div>
+          <div><dt>Ближайший чужой</dt><dd>{{ audit.closest_other_profile or '—' }}{% if audit.closest_other_similarity is not none %} · {{ '%.3f'|format(audit.closest_other_similarity) }}{% endif %}</dd></div>
+          <div><dt>Формат</dt><dd>{{ audit.sample_rate or '—' }} Гц · {{ audit.channels or '—' }} кан.</dd></div>
+        </dl>
+        {% if audit.quality_issues %}<ul class="issue-list">{% for issue in audit.quality_issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% endif %}
+
+        <form class="sample-decision" method="post" action="/samples/{{ sample.id }}/review">
+          <input name="manual_notes" value="{{ audit.manual_notes or '' }}" placeholder="Заметка к клипу">
+          <div>
+            <button class="decision-button approve {{ 'is-active' if audit.manual_status == 'approved' else '' }}" name="manual_status" value="approved" type="submit" {{ 'disabled' if audit.quality_status == 'blocked' else '' }}>{{ 'Голос принят ✓' if audit.manual_status == 'approved' else 'Подтвердить голос' }}</button>
+            <button class="decision-button reject {{ 'is-active' if audit.manual_status == 'rejected' else '' }}" name="manual_status" value="rejected" type="submit">{{ 'Отклонён ✓' if audit.manual_status == 'rejected' else 'Не тот голос' }}</button>
+          </div>
+        </form>
+        <form class="sample-selection" method="post" action="/samples/{{ sample.id }}/selection">
+          <input type="hidden" name="selected" value="{{ 'false' if audit.selected_for_enrollment else 'true' }}">
+          <button class="button small" type="submit" {{ 'disabled' if audit.quality_status == 'blocked' or audit.manual_status == 'rejected' else '' }}>{{ 'Убрать из эталонов' if audit.selected_for_enrollment else 'Сделать эталоном' }}</button>
+          <span class="manual-state {{ audit.manual_status }}">{% if audit.manual_status == 'approved' %}ты подтвердил{% elif audit.manual_status == 'rejected' %}ты отклонил{% else %}ещё не прослушан{% endif %}</span>
+        </form>
+        {% else %}<div class="callout warning">Для этого клипа нет автоматического отчёта.</div>{% endif %}
+      </section>
+    {% endfor %}
+    </div>
+
+    <form class="profile-decision" method="post" action="/profiles/{{ profile.id }}/review">
+      <label>Общая заметка о профиле<input name="notes" value="{{ (profile.review.notes or '') if profile.review else '' }}" placeholder="Например: все три клипа — точно ЧатГПТ"></label>
+      <div>
+        <button class="decision-button approve" name="manual_status" value="approved" type="submit">Подтвердить профиль {{ profile.name }}</button>
+        <button class="decision-button reject" name="manual_status" value="rejected" type="submit">Отклонить профиль</button>
+      </div>
+    </form>
+  </article>
+{% endfor %}
+</div>
+
+<section class="enrollment-gate {{ 'ready' if ready_to_enroll else 'locked' }}" data-enrollment-gate>
+  <div>
+    <p class="eyebrow">Шлюз безопасности</p>
+    <h2 data-enrollment-title>{{ 'Все решения приняты' if ready_to_enroll else 'Регистрация пока заблокирована' }}</h2>
+    <p data-enrollment-copy>{% if ready_to_enroll %}Можно поставить выбранные образцы в очередь Speechmatics. Архивные видео при этом ещё не запускаются.{% else %}Проверь каждый профиль и оставь хотя бы один подтверждённый выбранный клип у каждого принятого персонажа.{% endif %}</p>
+  </div>
+  <form method="post" action="/profiles/enrollment/start" onsubmit="return confirm('Отправить выбранные подтверждённые образцы в Speechmatics? Это использует API.')">
+    <button class="button primary" data-enrollment-button type="submit" {{ 'disabled' if not ready_to_enroll else '' }}>Зарегистрировать подтверждённые голоса</button>
+  </form>
+</section>
+{% endblock %}

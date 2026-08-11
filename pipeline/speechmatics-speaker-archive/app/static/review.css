@@ -1,0 +1,124 @@
+/* Voice review room — dense, tactile, and designed for repeated listening. */
+.review-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:40px;align-items:end;padding:38px;border:1px solid #38445d;border-radius:4px;background:#e8e2d4;color:#15171c;box-shadow:10px 10px 0 #05080e}
+.review-hero:after{content:"";position:absolute;right:330px;top:0;width:220px;height:100%;opacity:.15;background:repeating-linear-gradient(90deg,#17191e 0 2px,transparent 2px 11px)}
+.review-hero h1{position:relative;max-width:850px;margin:.1em 0 .3em;font:700 clamp(38px,6vw,78px)/.94 Georgia,"Times New Roman",serif;letter-spacing:-.055em}
+.review-hero p{position:relative;max-width:760px;margin:0;color:#4e5055;font-size:16px}
+.review-hero .eyebrow{color:#9a2e19!important}
+.review-score{position:relative;z-index:1;padding:22px;border-left:5px solid #d64221;background:#161a22;color:#f5f0e4}
+.review-score strong{display:block;font:700 52px/1 Georgia,serif;font-variant-numeric:tabular-nums}
+.review-score span{display:block;margin-top:8px;color:#b9bdc7}
+.progress-track{height:7px;margin-top:20px;background:#343a46}
+.progress-track i{display:block;height:100%;background:#ee5c37;transition:width .35s ease}
+.review-stats{display:grid;grid-template-columns:repeat(5,1fr);margin:30px 0;border:1px solid var(--line);background:#0a0e17}
+.review-stats>div{padding:17px 20px;border-right:1px solid var(--line)}
+.review-stats>div:last-child{border:0}
+.review-stats strong{display:block;font:700 29px/1.1 Georgia,serif;font-variant-numeric:tabular-nums}
+.review-stats span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.review-stats .good strong{color:var(--ok)}
+.review-stats .warn strong{color:var(--warn)}
+.review-stats .bad strong{color:var(--danger)}
+.review-stats .selected strong{color:#9fb1ff}
+.review-toolbar{position:sticky;top:70px;z-index:12;display:grid;grid-template-columns:1fr 250px auto;gap:14px;align-items:end;border-radius:4px;background:rgba(18,26,46,.96);backdrop-filter:blur(15px)}
+.review-legend{display:flex;gap:14px;flex-wrap:wrap;align-self:center;color:var(--muted);font-size:12px}
+.review-legend span{display:flex;align-items:center;gap:6px}
+.legend-dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.legend-dot.good{background:var(--ok)}
+.legend-dot.warn{background:var(--warn)}
+.legend-dot.bad{background:var(--danger)}
+.profile-review-list{display:grid;gap:30px;margin-top:28px}
+.profile-review{scroll-margin-top:190px;border:1px solid #344059;border-radius:4px;background:#101724;box-shadow:0 20px 45px rgba(0,0,0,.25);transition-property:border-color,box-shadow,opacity;transition-duration:220ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+.profile-review[hidden]{display:none}
+.profile-review.approved{border-color:rgba(99,230,190,.85);box-shadow:0 0 0 2px rgba(99,230,190,.16),0 20px 45px rgba(0,0,0,.25)}
+.profile-review.rejected{opacity:.72;border-color:rgba(255,123,139,.5)}
+.profile-review-head{display:flex;gap:18px;align-items:center;padding:22px 24px;border-bottom:1px solid #344059;background:linear-gradient(90deg,#151f31,#111827)}
+.review-avatar{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;border:1px solid #6d7890;background:#e8e2d4;color:#17191e;font:700 29px/1 Georgia,serif;box-shadow:5px 5px 0 #060910}
+.profile-review-title{min-width:0}
+.profile-review-title h2{margin:0;font:700 31px/1.05 Georgia,serif}
+.profile-review-title p{margin:5px 0 0;color:var(--muted)}
+.profile-review-title .eyebrow{margin:0 0 5px;color:#ee6b49!important}
+.decision-pill{margin-left:auto;padding:7px 11px;border:1px solid #4d586d;color:#c7cfdf;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.decision-pill.approved{border-color:var(--ok);color:var(--ok)}
+.decision-pill.rejected{border-color:var(--danger);color:var(--danger)}
+.sample-review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:#2a354a}
+.sample-review-card{min-width:0;padding:18px;background:#0d1421;border-top:3px solid var(--ok);box-shadow:inset 0 0 0 0 rgba(99,230,190,0);transition-property:background-color,box-shadow,opacity;transition-duration:180ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+.sample-review-card.warning{border-top-color:var(--warn)}
+.sample-review-card.blocked{border-top-color:var(--danger);background:#1b1118}
+.sample-review-card.approved{background:#0d1c1c;box-shadow:inset 0 0 0 2px rgba(99,230,190,.88),inset 0 0 28px rgba(99,230,190,.06)}
+.sample-review-card.rejected{opacity:.68}
+.sample-card-top{display:flex;justify-content:space-between;gap:12px;min-height:42px}
+.sample-card-top>div:first-child{min-width:0}
+.sample-card-top strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f2eee5}
+.sample-card-top span{color:var(--muted);font-size:12px}
+.sample-badges{display:flex;gap:5px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.quality-pill{padding:3px 7px;border:1px solid currentColor;color:var(--ok);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.quality-pill.warning{color:var(--warn)}
+.quality-pill.blocked{color:var(--danger)}
+.quality-pill.selected{color:#aebcff}
+.sample-review-card audio{width:100%;height:38px;margin:12px 0;color-scheme:dark}
+.table-audio{width:260px;max-width:40vw;height:34px;color-scheme:dark}
+.topbar nav{scrollbar-width:none}
+.topbar nav::-webkit-scrollbar{display:none}
+.sample-metrics{display:grid;grid-template-columns:1fr 1fr;margin:0;border:1px solid #29354a}
+.sample-metrics div{padding:8px 10px;border-right:1px solid #29354a;border-bottom:1px solid #29354a}
+.sample-metrics div:nth-child(even){border-right:0}
+.sample-metrics div:nth-last-child(-n+2){border-bottom:0}
+.sample-metrics dt{color:#7f8ca7;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.sample-metrics dd{margin:3px 0 0;color:#dfe5f1;font-size:12px;overflow-wrap:anywhere}
+.issue-list{margin:10px 0 0;padding:10px 10px 10px 28px;border-left:3px solid var(--warn);background:rgba(255,209,102,.08);color:#ffe5a3;font-size:12px}
+.issue-list li+li{margin-top:5px}
+.sample-decision{display:grid;gap:8px;margin-top:12px}
+.sample-decision>div,.profile-decision>div{display:flex;gap:8px;flex-wrap:wrap}
+.decision-button{min-height:40px;border:1px solid #4b5870;padding:9px 12px;background:#182235;color:#e9eef9;cursor:pointer;font:700 12px/1.1 inherit;transition-property:transform,background-color,border-color,color,box-shadow;transition-duration:150ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+.decision-button:hover{border-color:white}
+.decision-button:active{transform:scale(.96)}
+.decision-button.approve{border-color:rgba(99,230,190,.6);color:var(--ok)}
+.decision-button.reject{border-color:rgba(255,123,139,.55);color:var(--danger)}
+.decision-button.approve.is-active{border-color:var(--ok);background:rgba(99,230,190,.16);box-shadow:0 0 0 2px rgba(99,230,190,.12);color:#c8fff0}
+.decision-button.reject.is-active{border-color:var(--danger);background:rgba(255,123,139,.14);box-shadow:0 0 0 2px rgba(255,123,139,.1);color:#ffd1d7}
+button:disabled{opacity:.38;cursor:not-allowed;transform:none!important}
+.sample-selection{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:8px}
+.manual-state{font-size:11px;color:var(--muted)}
+.manual-state.approved{color:var(--ok)}
+.manual-state.rejected{color:var(--danger)}
+.review-toast{position:fixed;right:22px;bottom:22px;z-index:100;max-width:min(420px,calc(100vw - 28px));padding:13px 16px;border-left:4px solid var(--ok);background:#e8e2d4;color:#17191e;box-shadow:0 16px 44px rgba(0,0,0,.38);font-weight:800;opacity:0;pointer-events:none;transform:translateY(12px) scale(.98);filter:blur(2px);transition-property:opacity,transform,filter;transition-duration:180ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+.review-toast.visible{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+.review-toast.error{border-left-color:var(--danger);background:#ffe1e5;color:#641421}
+.profile-decision{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:18px;align-items:end;padding:20px 24px;border-top:1px solid #344059;background:#141c2a}
+.profile-decision .decision-button{min-height:43px}
+.enrollment-gate{display:flex;align-items:center;justify-content:space-between;gap:28px;margin-top:36px;padding:28px 30px;border:1px solid #4c586e;background:#0a0e17;box-shadow:8px 8px 0 #05070b}
+.enrollment-gate h2{margin:2px 0 6px;font:700 30px/1 Georgia,serif}
+.enrollment-gate p{margin:0;color:var(--muted)}
+.enrollment-gate.ready{border-color:var(--ok)}
+.enrollment-gate.locked{border-color:#635b47}
+@media(max-width:1050px){
+  .review-hero{grid-template-columns:1fr}
+  .review-hero:after{display:none}
+  .review-stats{grid-template-columns:repeat(3,1fr)}
+  .review-toolbar{grid-template-columns:1fr 220px}
+  .review-legend{grid-column:1/-1}
+  .sample-review-grid{grid-template-columns:1fr}
+  .profile-decision{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  .review-hero{padding:25px 20px;box-shadow:5px 5px 0 #05080e}
+  .review-hero h1{font-size:44px}
+  .review-score{padding:16px}
+  .review-stats{grid-template-columns:repeat(2,1fr)}
+  .review-stats>div{border-bottom:1px solid var(--line)}
+  .review-toolbar{position:static;grid-template-columns:1fr}
+  .profile-review-head{align-items:flex-start;flex-wrap:wrap;padding:17px}
+  .review-avatar{flex-basis:46px;width:46px;height:46px}
+  .decision-pill{margin-left:0}
+  .sample-review-card{padding:14px}
+  .sample-metrics{grid-template-columns:1fr}
+  .sample-metrics div{border-right:0!important;border-bottom:1px solid #29354a!important}
+  .sample-metrics div:last-child{border-bottom:0!important}
+  .profile-decision{padding:16px}
+  .enrollment-gate{align-items:stretch;flex-direction:column}
+  .enrollment-gate .button{width:100%}
+  .table-audio{max-width:70vw}
+  .review-toast{right:14px;bottom:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .profile-review,.sample-review-card,.decision-button,.review-toast,.progress-track i{transition-duration:0ms}
+}

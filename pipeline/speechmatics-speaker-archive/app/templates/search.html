@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Поиск — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">FTS5 + Voyage-4</p><h1>Поиск по всему архиву</h1><p>Точные слова, смысл, игровые фильтры и ответы с источниками.</p></div></div>
+<form class="panel search-form" method="get">
+  <label class="full">Вопрос или фраза<input name="q" value="{{ q }}" placeholder="Например: почему Клод подозревал Грока?" required></label>
+  <div class="form-grid">
+    <label>Видео<select name="video_id"><option value="">Все видео</option>{% for video in videos %}<option value="{{ video.id }}" {{ 'selected' if selected.video_id == video.id else '' }}>{{ video.title }}</option>{% endfor %}</select></label>
+    <label>Персонаж<select name="profile_id"><option value="">Все персонажи</option>{% for profile in profiles %}<option value="{{ profile.id }}" {{ 'selected' if selected.profile_id == profile.id else '' }}>{{ profile.name }}</option>{% endfor %}</select></label>
+    <label>Тип видео<select name="content_type"><option value="">Любой</option>{% for value in ['talk_only','mixed','mafia_only','unknown'] %}<option value="{{ value }}" {{ 'selected' if selected.content_type == value else '' }}>{{ value|content_type_label }}</option>{% endfor %}</select></label>
+    <label>Роль<select name="role_code"><option value="">Любая</option>{% for role in roles %}<option value="{{ role.code }}" {{ 'selected' if selected.role_code == role.code else '' }}>{{ role.name }}</option>{% endfor %}</select></label>
+    <label>Победитель<select name="winner"><option value="">Любой</option>{% for value in ['civilians','mafia','neutral','draw','unknown'] %}<option value="{{ value }}" {{ 'selected' if selected.winner == value else '' }}>{{ value|faction_label }}</option>{% endfor %}</select></label>
+    <label>Раунд ID<input type="number" name="round_id" value="{{ selected.round_id or '' }}"></label>
+    <label>От секунды<input type="number" step="0.1" name="start_time" value="{{ selected.start_time if selected.start_time is not none else '' }}"></label>
+    <label>До секунды<input type="number" step="0.1" name="end_time" value="{{ selected.end_time if selected.end_time is not none else '' }}"></label>
+  </div>
+  <label class="check"><input type="checkbox" name="answer" value="true" {{ 'checked' if selected.answer else '' }}> Сформировать ответ по найденным источникам</label>
+  <button class="button primary" type="submit">Найти</button>
+</form>
+{% if search_error %}<div class="callout error-box">{{ search_error }}</div>{% endif %}
+{% if rag %}<section class="panel rag-answer"><p class="eyebrow">Ответ по архиву</p><h2>{{ rag.answer }}</h2>{% if rag.insufficient_evidence %}<div class="callout warning">Источников недостаточно для уверенного ответа.</div>{% endif %}</section>{% endif %}
+{% if hits %}<section class="panel"><div class="panel-header"><h2>Источники</h2><span>{{ hits|length }}</span></div><div class="transcript">
+{% for hit in hits %}<article class="utterance">
+  <div class="utterance-meta"><a href="/videos/{{ hit.video_id }}">{{ hit.video_title }}</a><span>{{ hit.start_time|timestamp }} → {{ hit.end_time|timestamp }}</span>{% if hit.round_number %}<a href="/games/{{ hit.round_id }}">раунд {{ hit.round_number }}</a>{% endif %}<span>сходство {{ '%.3f'|format(hit.vector_score or 0) }}</span></div>
+  <p>{{ hit.text }}</p>
+  <div class="subtle">{{ hit.speakers|join(', ') }}</div>
+  <audio controls preload="none" src="/videos/{{ hit.video_id }}/clip?start={{ [hit.start_time-1,0]|max }}&end={{ hit.end_time+2 }}"></audio>
+</article>{% endfor %}
+</div></section>{% elif q and not search_error %}<p class="empty">Совпадений не найдено.</p>{% endif %}
+{% endblock %}

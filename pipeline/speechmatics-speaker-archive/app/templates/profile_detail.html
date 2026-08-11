@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.name }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Профиль {{ profile.api_label }}</p><h1>{{ profile.name }}</h1><p>{{ profile.notes or 'Без заметки' }}</p></div>
+  <div class="row-actions">
+    <form method="post" action="/profiles/{{ profile.id }}/toggle"><button class="button" type="submit">{{ 'Отключить' if profile.active else 'Включить' }}</button></form>
+    <form method="post" action="/profiles/{{ profile.id }}/delete" onsubmit="return confirm('Удалить профиль «{{ profile.name|e }}» и все его образцы?')">
+      <button class="button" type="submit" style="color:var(--danger);border-color:var(--danger)">Удалить</button>
+    </form>
+  </div>
+</div>
+<div class="callout">Speechmatics рекомендует клипы 5–30 секунд, где говорит только этот человек. Несколько образцов из телефона, комнаты и хорошего микрофона повышают устойчивость.</div>
+<section class="panel">
+  <h2>Добавить образцы</h2>
+  <form class="upload-box" method="post" action="/profiles/{{ profile.id }}/samples" enctype="multipart/form-data">
+    <input type="file" name="files" accept="audio/wav,.wav" multiple required>
+    <button class="button primary" type="submit">Загрузить и поставить в очередь</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="panel-header"><h2>Образцы</h2><span>{{ profile.samples|length }}</span></div>
+  {% if profile.samples %}<div class="table-wrap"><table>
+    <thead><tr><th>Файл</th><th>Прослушать</th><th>Длительность</th><th>Размер</th><th>Voice ID</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+      {% for sample in profile.samples|sort(attribute='created_at', reverse=true) %}
+      <tr>
+        <td>{{ sample.original_filename }}{% if sample.error_message %}<div class="error-text">{{ sample.error_message }}</div>{% endif %}</td>
+        <td><audio class="table-audio" controls preload="none" src="/samples/{{ sample.id }}/audio"></audio></td>
+        <td>{{ sample.duration_seconds|duration }}</td>
+        <td>{{ sample.size_bytes|filesize }}</td>
+        <td class="mono clip">{{ sample.speaker_identifier or '—' }}</td>
+        <td><span class="badge {{ sample.status }}">{{ sample.status }}</span></td>
+        <td>{% if sample.status == 'failed' %}<form method="post" action="/samples/{{ sample.id }}/retry"><button class="button small">Повторить</button></form>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>{% else %}<p class="empty">Образцы ещё не загружены.</p>{% endif %}
+</section>
+{% endblock %}

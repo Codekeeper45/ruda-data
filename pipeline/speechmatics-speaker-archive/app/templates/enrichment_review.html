@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Проверка игровых данных — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Ручная сверка</p><h1>Спорные игровые данные</h1><p>{{ rounds|length }} раундов · {{ participants|length }} участников или ролей</p></div></div>
+<section class="panel"><h2>Раунды</h2>{% if rounds %}<div class="cards">{% for game,video in rounds %}<a class="profile-card" href="/games/{{ game.id }}"><span class="avatar">{{ game.round_number }}</span><span><strong>{{ video.title }}</strong><span class="subtle">{{ game.start_time|timestamp }} → {{ game.end_time|timestamp }} · {{ game.winning_faction|faction_label }}</span></span><span class="badge queued">{{ game.review_status|review_status_label }}</span></a>{% endfor %}</div>{% else %}<p class="empty">Спорных раундов нет.</p>{% endif %}</section>
+<section class="panel"><h2>Участники и роли</h2>{% if participants %}<div class="table-wrap"><table><thead><tr><th>Видео</th><th>Раунд</th><th>Участник</th><th>Роль</th><th>Уверенность</th></tr></thead><tbody>{% for participant,game,video,role in participants %}<tr><td><a href="/games/{{ game.id }}#participant-{{ participant.id }}">{{ video.title }}</a></td><td>{{ game.round_number }}</td><td>{{ participant.display_name }}</td><td>{{ role.name if role else 'неизвестна' }}</td><td>{{ '%.0f%%'|format((participant.role_confidence or 0)*100) }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty">Спорных ролей нет.</p>{% endif %}</section>
+{% endblock %}

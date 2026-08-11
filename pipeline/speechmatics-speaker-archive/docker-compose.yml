@@ -1,0 +1,22 @@
+services:
+  speaker-archive:
+    build: .
+    container_name: speechmatics-speaker-archive
+    restart: unless-stopped
+    ports:
+      # Панель административная и не имеет встроенной авторизации.
+      # По умолчанию она доступна только с этой машины.
+      - "127.0.0.1:${PORT:-8000}:8000"
+    environment:
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY in .env before starting}
+      SPEECHMATICS_API_KEY: ${SPEECHMATICS_API_KEY:-}
+      SPEECHMATICS_BASE_URL: ${SPEECHMATICS_BASE_URL:-https://eu1.asr.api.speechmatics.com/v2}
+      DATABASE_URL: sqlite:////app/data/app.db
+      STORAGE_DIR: /app/storage
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-10}
+      FOLDER_SCAN_INTERVAL_SECONDS: ${FOLDER_SCAN_INTERVAL_SECONDS:-60}
+      KEEP_PREPARED_AUDIO: ${KEEP_PREPARED_AUDIO:-false}
+    volumes:
+      - ./data:/app/data
+      - ./storage:/app/storage
+      - ${AUDIO_ROOT:-./audio}:/audio:ro

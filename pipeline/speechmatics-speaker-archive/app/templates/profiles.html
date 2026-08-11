@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Профили — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Голосовые профили</p><h1>Профили говорящих</h1><p>Для каждого человека загрузите 1–3 чистых образца по 5–30 секунд из разных условий.</p></div><a class="button primary" href="/profiles/review">Прослушать и подтвердить</a></div>
+<section class="split">
+  <form class="panel compact-form" method="post" action="/profiles">
+    <h2>Новый профиль</h2>
+    <label>Имя<input name="name" required placeholder="Эмир"></label>
+    <label>Заметка<textarea name="notes" rows="4" placeholder="Основной ведущий, телефон + студийный микрофон"></textarea></label>
+    <button class="button primary" type="submit">Создать</button>
+  </form>
+  <section class="panel grow">
+    <div class="panel-header"><h2>Все профили</h2><span>{{ profiles|length }}</span></div>
+    {% if profiles %}<div class="cards">
+      {% for profile in profiles %}
+      {% set ready = profile.samples|selectattr('speaker_identifier')|list|length %}
+      <div class="card-row">
+        <a class="profile-card" href="/profiles/{{ profile.id }}" style="flex:1">
+          <div class="avatar">{{ profile.name[:1]|upper }}</div>
+          <div><strong>{{ profile.name }}</strong><div class="subtle">{{ ready }} идентификаторов · {{ profile.samples|length }} образцов</div></div>
+          <span class="badge {{ 'completed' if ready else 'queued' }}">{{ 'готов' if ready else 'нужен sample' }}</span>
+        </a>
+        <form method="post" action="/profiles/{{ profile.id }}/delete" onsubmit="return confirm('Удалить профиль «{{ profile.name|e }}» и все его образцы?')">
+          <button class="button small" type="submit" style="color:var(--danger);border-color:var(--danger)">Удалить</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>{% else %}<p class="empty">Создайте первый профиль.</p>{% endif %}
+  </section>
+</section>
+{% endblock %}

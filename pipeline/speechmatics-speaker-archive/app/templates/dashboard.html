@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Панель — {{ app_name }}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Speechmatics Speaker Identification</p>
+    <h1>Архив расшифровок с настоящими именами спикеров</h1>
+    <p>Профили голосов → очередь больших WAV → Speechmatics → структурированная SQLite БД.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="button primary" href="/profiles">Добавить спикера</a>
+    <a class="button" href="/sources">Указать папку</a>
+    <a class="button" href="/export/database">Скачать БД</a>
+  </div>
+</section>
+
+{% if not api_configured %}
+<div class="callout warning"><strong>API-ключ не настроен.</strong> Очередь сохранится, но отправка начнётся только после добавления ключа в <a href="/settings">настройках</a>.</div>
+{% endif %}
+{% if not worker_enabled %}
+<div class="callout warning"><strong>Очередь приостановлена.</strong> Готовые результаты доступны, но новые файлы в Speechmatics сейчас не отправляются.</div>
+{% endif %}
+{% if processing_paused %}
+<div class="callout warning"><strong>Speechmatics остановил очередь.</strong> {{ processing_pause_reason }}</div>
+{% endif %}
+
+<section class="stats-grid">
+  <div class="stat"><strong>{{ counts.profiles }}</strong><span>профилей</span></div>
+  <div class="stat"><strong>{{ counts.identifiers }}</strong><span>voice ID</span></div>
+  <div class="stat"><strong>{{ counts.videos }}</strong><span>видео</span></div>
+  <div class="stat"><strong>{{ counts.queued }}</strong><span>в очереди</span></div>
+  <div class="stat"><strong>{{ counts.running }}</strong><span>обрабатывается</span></div>
+  <div class="stat"><strong>{{ counts.completed }}</strong><span>готово</span></div>
+  <div class="stat danger"><strong>{{ counts.failed }}</strong><span>текущих ошибок</span></div>
+</section>
+
+{% if active_job %}
+<section class="panel">
+  <div class="panel-header"><h2>Сейчас обрабатывается</h2><span class="badge {{ active_job.status }}">{{ active_job.status }}</span></div>
+  {% if active_job.video %}
+    <a class="item-link" href="/videos/{{ active_job.video.id }}">{{ active_job.video.title }}</a>
+  {% elif active_job.sample %}
+    <a class="item-link" href="/profiles/{{ active_job.sample.profile_id }}">Образец: {{ active_job.sample.original_filename }}</a>
+  {% endif %}
+  {% if active_job.remote_job_id %}<p class="mono muted">Speechmatics job: {{ active_job.remote_job_id }}</p>{% endif %}
+</section>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-header"><h2>Последние файлы</h2><a href="/videos">Открыть все</a></div>
+  {% if recent_videos %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Название</th><th>Длительность</th><th>Размер</th><th>Статус</th></tr></thead>
+    <tbody>
+    {% for video in recent_videos %}
+      <tr>
+        <td><a href="/videos/{{ video.id }}">{{ video.title }}</a><div class="subtle">{{ video.original_filename }}</div></td>
+        <td>{{ video.duration_seconds|duration }}</td>
+        <td>{{ video.source_size_bytes|filesize }}</td>
+        <td><span class="badge {{ video.status }}">{{ video.status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty">Файлов пока нет. Добавьте папку с WAV.</p>{% endif %}
+</section>
+{% endblock %}

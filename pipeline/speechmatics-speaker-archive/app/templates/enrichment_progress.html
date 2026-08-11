@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Обогащение — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Отдельный прогресс · обновляется автоматически</p><h1>Обогащение архива</h1><p>Игровая структура, проверка и поисковый индекс. <span data-progress-updated></span></p></div><a class="button" href="/enrichment/review">Очередь проверки</a></div>
+<section class="stats-grid" data-enrichment-progress>
+  <div class="stat"><strong data-progress-value="classified">{{ counts.classified }}/{{ counts.videos }}</strong><span>видео классифицировано</span></div>
+  <div class="stat"><strong data-progress-value="active">{{ counts.running }}</strong><span>заданий сейчас в работе</span></div>
+  <div class="stat"><strong data-progress-value="mafia">{{ counts.mafia_videos }}</strong><span>видео с мафией</span></div>
+  <div class="stat"><strong data-progress-value="rounds">{{ counts.rounds }}</strong><span>раундов</span></div>
+  <div class="stat"><strong data-progress-value="review">{{ counts.review }}</strong><span>нужна проверка</span></div>
+  <div class="stat"><strong data-progress-value="documents">{{ counts.documents }}</strong><span>смысловых фрагментов</span></div>
+  <div class="stat"><strong data-progress-value="embeddings">{{ counts.embeddings }}</strong><span>эмбеддингов</span></div>
+  <div class="stat {{ 'danger' if counts.failed or counts.embedding_failed else '' }}"><strong data-progress-value="errors">{{ counts.failed + counts.embedding_failed }}</strong><span>ошибок</span></div>
+</section>
+<section class="panel no-pad"><div class="table-wrap"><table>
+<thead><tr><th>Видео</th><th>Этап</th><th>Состояние</th><th>Модель</th><th>Токены</th><th>Стоимость</th><th>Ошибка</th></tr></thead>
+<tbody>{% for run in recent_runs %}<tr><td>{{ run.video_id or 'общий' }}</td><td>{{ run.stage|stage_label }}</td><td><span class="badge {{ 'completed' if run.status == 'completed' else ('failed' if run.status == 'failed' else 'running') }}">{{ run.status|run_status_label }}</span></td><td class="clip">{{ run.model or '—' }}</td><td>{{ run.prompt_tokens + run.completion_tokens }}</td><td>${{ '%.4f'|format(run.estimated_cost_usd) }}</td><td class="error-text">{{ run.error_message or '' }}</td></tr>{% endfor %}</tbody>
+</table></div></section>
+{% endblock %}

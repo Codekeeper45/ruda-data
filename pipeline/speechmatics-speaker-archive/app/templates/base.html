@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/review.css">
+  <link rel="stylesheet" href="/static/enrichment.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Speaker Archive</a>
+    <nav>
+      <a href="/profiles">Профили</a>
+      <a href="/profiles/review">Проверка голосов</a>
+      <a href="/sources">Папки</a>
+      <a href="/videos">Видео</a>
+      <a href="/games">Игры</a>
+      <a href="/search">Поиск</a>
+      <a href="/enrichment/progress">Обогащение</a>
+      <a href="/settings">Настройки</a>
+    </nav>
+    <div class="worker-indicator" title="Фоновый обработчик">
+      <span class="dot {{ 'bad' if worker.last_error else 'good' }}"></span>
+      {{ 'Ошибка worker' if worker.last_error else 'Worker активен' }}
+    </div>
+  </header>
+  <main class="container">
+    {% if message %}<div class="flash success">{{ message }}</div>{% endif %}
+    {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

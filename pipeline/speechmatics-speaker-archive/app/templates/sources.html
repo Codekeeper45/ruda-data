@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Папки — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Очередь файлов</p><h1>Папки с WAV</h1><p>Путь относится к компьютеру или серверу, где запущено приложение.</p></div></div>
+<section class="split">
+  <form class="panel compact-form" method="post" action="/sources">
+    <h2>Добавить папку</h2>
+    <label>Абсолютный путь<input name="path" required placeholder="/srv/audio"></label>
+    <label class="check"><input type="checkbox" name="recursive" value="true"> Искать во вложенных папках</label>
+    <label class="check"><input type="checkbox" name="auto_scan" value="true" checked> Автоматически искать новые WAV</label>
+    <button class="button primary" type="submit">Добавить и просканировать</button>
+  </form>
+  <section class="panel grow">
+    <div class="panel-header"><h2>Источники</h2><span>{{ sources|length }}</span></div>
+    {% if sources %}<div class="source-list">
+      {% for source in sources %}
+      <article class="source-card">
+        <div class="source-main"><strong class="mono">{{ source.path }}</strong><div class="subtle">{{ source.videos|length }} файлов · {{ 'рекурсивно' if source.recursive else 'только папка' }} · auto-scan {{ 'on' if source.auto_scan else 'off' }}</div>{% if source.last_error %}<div class="error-text">{{ source.last_error }}</div>{% endif %}</div>
+        <div class="row-actions">
+          <form method="post" action="/sources/{{ source.id }}/scan"><button class="button small">Сканировать</button></form>
+          <form method="post" action="/sources/{{ source.id }}/toggle"><button class="button small">{{ 'Отключить' if source.enabled else 'Включить' }}</button></form>
+        </div>
+      </article>
+      {% endfor %}
+    </div>{% else %}<p class="empty">Папки не настроены.</p>{% endif %}
+  </section>
+</section>
+{% endblock %}

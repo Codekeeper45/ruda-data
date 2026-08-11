@@ -1,0 +1,23 @@
+{
+  "format": "2.1",
+  "job": {"id": "demo-job", "duration": 8, "data_name": "demo.wav"},
+  "metadata": {
+    "type": "transcription",
+    "transcription_config": {"language": "ru", "model": "enhanced", "diarization": "speaker"}
+  },
+  "results": [
+    {"type": "word", "start_time": 0.0, "end_time": 0.4, "alternatives": [{"content": "Привет", "confidence": 0.98, "language": "ru", "speaker": "profile_1"}]},
+    {"type": "punctuation", "start_time": 0.4, "end_time": 0.4, "attaches_to": "previous", "is_eos": false, "alternatives": [{"content": ",", "confidence": 1.0, "language": "ru", "speaker": "profile_1"}]},
+    {"type": "word", "start_time": 0.45, "end_time": 0.8, "alternatives": [{"content": "как", "confidence": 0.97, "language": "ru", "speaker": "profile_1"}]},
+    {"type": "word", "start_time": 0.8, "end_time": 1.2, "alternatives": [{"content": "дела", "confidence": 0.96, "language": "ru", "speaker": "profile_1"}]},
+    {"type": "punctuation", "start_time": 1.2, "end_time": 1.2, "attaches_to": "previous", "is_eos": true, "alternatives": [{"content": "?", "confidence": 1.0, "language": "ru", "speaker": "profile_1"}]},
+    {"type": "word", "start_time": 1.6, "end_time": 2.0, "alternatives": [{"content": "Хорошо", "confidence": 0.94, "language": "ru", "speaker": "S1"}]},
+    {"type": "punctuation", "start_time": 2.0, "end_time": 2.0, "attaches_to": "previous", "is_eos": true, "alternatives": [{"content": ".", "confidence": 1.0, "language": "ru", "speaker": "S1"}]},
+    {"type": "word", "start_time": 5.0, "end_time": 5.4, "alternatives": [{"content": "Продолжим", "confidence": 0.92, "language": "ru", "speaker": "S1"}]},
+    {"type": "punctuation", "start_time": 5.4, "end_time": 5.4, "attaches_to": "previous", "is_eos": true, "alternatives": [{"content": ".", "confidence": 1.0, "language": "ru", "speaker": "S1"}]}
+  ],
+  "speakers": [
+    {"label": "profile_1", "speaker_identifiers": ["encrypted-id-known"]},
+    {"label": "S1", "speaker_identifiers": ["encrypted-id-unknown"]}
+  ]
+}

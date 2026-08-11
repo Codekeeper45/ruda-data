@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Настройки — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Конфигурация</p><h1>Настройки Speechmatics</h1></div></div>
+{% if app_secret_is_default %}<div class="callout warning">Для постоянной установки замените <code>APP_SECRET_KEY</code> в <code>.env</code>, иначе шифрование API-ключа использует демонстрационный секрет.</div>{% endif %}
+<form class="panel form-grid" method="post">
+  <label class="full">API-ключ Speechmatics
+    <input type="password" name="api_key" placeholder="{{ 'Настроен через .env' if api_from_env else ('Ключ уже сохранён — оставьте пустым' if api_configured else 'Вставьте API-ключ') }}" {{ 'disabled' if api_from_env else '' }}>
+    <small>Ключ из переменной окружения имеет приоритет. В БД ключ хранится зашифрованным.</small>
+  </label>
+  <label class="full">API-ключ OpenRouter
+    <input type="password" name="openrouter_api_key" placeholder="{{ 'Настроен через .env' if openrouter_from_env else ('Ключ уже сохранён — оставьте пустым' if openrouter_configured else 'Вставьте API-ключ') }}" {{ 'disabled' if openrouter_from_env else '' }}>
+    <small>Используется для Ling, Nemotron, точечного арбитража Luna, Voyage-эмбеддингов и RAG. В БД сохраняется зашифрованным.</small>
+  </label>
+  <div class="full callout">
+    <strong>Модели обогащения</strong><br>
+    Основная: <code>{{ enrichment_models.primary }}</code><br>
+    Проверка: <code>{{ enrichment_models.verifier }}</code><br>
+    Спорные случаи: <code>{{ enrichment_models.escalation }}</code><br>
+    Кадры: <code>{{ enrichment_models.vision }}</code><br>
+    Эмбеддинги: <code>{{ enrichment_models.embedding }}</code>
+  </div>
+  <label>Язык
+    <input name="language" value="{{ values.language }}" required>
+  </label>
+  <label>Модель
+    <select name="model">
+      {% for model in ['enhanced','standard'] %}<option value="{{ model }}" {{ 'selected' if values.model == model else '' }}>{{ model }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="full">Batch API URL
+    <input name="speechmatics_base_url" value="{{ values.speechmatics_base_url }}" required>
+  </label>
+  <label>Чувствительность диаризации
+    <input type="number" name="speaker_sensitivity" min="0" max="1" step="0.05" value="{{ values.speaker_sensitivity }}" placeholder="по умолчанию API">
+    <small>Выше — чаще разделяет похожие голоса.</small>
+  </label>
+  <label class="full">Словарь терминов, по одному на строку
+    <textarea name="additional_vocab" rows="10" placeholder="GigaAM&#10;T-One&#10;OpenAI">{{ values.additional_vocab }}</textarea>
+    <small>До 1000 элементов; одна фраза — не более шести слов.</small>
+  </label>
+  <div class="full form-actions"><button class="button primary" type="submit">Сохранить</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Игры — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Структура архива</p><h1>Игры в мафию</h1><p>{{ rows|length }} раундов · {{ classified }} видео классифицировано</p></div>
+  <a class="button" href="/enrichment/review">Проверить спорное</a>
+</div>
+<form class="filters" method="get">
+  <input name="q" value="{{ q }}" placeholder="Название видео">
+  <select name="winner">
+    <option value="">Любой победитель</option>
+    {% for value,label in [('civilians','Мирные'),('mafia','Мафия'),('neutral','Нейтральный'),('draw','Ничья'),('unknown','Неизвестно')] %}
+    <option value="{{ value }}" {{ 'selected' if winner == value else '' }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="review">
+    <option value="">Любая проверка</option>
+    {% for value in ['auto_verified','needs_review','unknown','confirmed'] %}
+    <option value="{{ value }}" {{ 'selected' if review == value else '' }}>{{ value|review_status_label }}</option>
+    {% endfor %}
+  </select>
+  <button class="button" type="submit">Фильтр</button>
+</form>
+<section class="panel no-pad">
+{% if rows %}<div class="table-wrap"><table>
+  <thead><tr><th>Видео и раунд</th><th>Границы</th><th>Участники</th><th>Ночи</th><th>Победитель</th><th>Проверка</th></tr></thead>
+  <tbody>
+  {% for row in rows %}<tr>
+    <td><a href="/games/{{ row.round.id }}">{{ row.video.title }}</a><div class="subtle">Раунд {{ row.round.round_number }}{{ ' · частичный' if row.round.is_partial else '' }}</div></td>
+    <td>{{ row.round.start_time|timestamp }} → {{ row.round.end_time|timestamp }}</td>
+    <td>{{ row.participants }}{% if row.unknown_roles %}<div class="error-text">{{ row.unknown_roles }} ролей неизвестно</div>{% endif %}</td>
+    <td>{{ row.nights }}</td>
+    <td>{{ row.round.winning_faction|faction_label }}<div class="subtle">{{ row.round.winner_summary or '—' }}</div></td>
+    <td><span class="badge {{ 'completed' if row.round.review_status in ['confirmed','auto_verified'] else 'queued' }}">{{ row.round.review_status|review_status_label }}</span><div class="subtle">{{ '%.0f%%'|format((row.round.confidence or 0)*100) }}</div></td>
+  </tr>{% endfor %}
+  </tbody>
+</table></div>{% else %}<p class="empty padded">Раунды ещё не извлечены или фильтр ничего не нашёл.</p>{% endif %}
+</section>
+{% endblock %}
