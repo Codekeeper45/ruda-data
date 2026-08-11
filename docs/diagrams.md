@@ -3,6 +3,56 @@
 Эти диаграммы объясняют не код приложения, а устройство release-снимка данных:
 от исходного видео до таблиц, RAG и аудиторского решения.
 
+## От исходного файла до проверенного release
+
+```mermaid
+flowchart LR
+  MEDIA[Видео и аудио] --> ASR[Транскрипция]
+  ASR --> DIAR[Диаризационные дорожки]
+  DIAR --> RAW[raw-снимок]
+  RAW --> ENRICH[Раунды, составы, роли, фазы, события]
+  ENRICH --> AUDIT[Доказательства и решения аудита]
+  AUDIT --> EFFECTIVE[effective-представления]
+  EFFECTIVE --> RAG[FTS5, документы, эмбеддинги]
+  RAG --> VERIFY[Целостность, FK и инварианты]
+  VERIFY --> RELEASE[Версионный app.db]
+```
+
+## Проверка release по манифесту
+
+```mermaid
+flowchart LR
+  TAG[GitHub Release] --> M[database-manifest.json]
+  M --> EXPECTED[asset, размер, SHA-256, data_version, counts]
+  TAG --> DB[app.db]
+  DB --> ACTUAL[хэш, PRAGMA, версия, counts]
+  EXPECTED --> MATCH{совпало?}
+  ACTUAL --> MATCH
+  MATCH -- да --> OK[снимок воспроизводим]
+  MATCH -- нет --> BAD[остановиться и сообщить об ошибке]
+```
+
+## Граница содержимого `app.db`
+
+```mermaid
+flowchart LR
+  subgraph DB[Внутри app.db]
+    TRANSCRIPT[реплики, слова, таймкоды]
+    GAME[игровое обогащение]
+    PROFILES[метаданные профилей]
+    SEARCH[поисковые документы и векторы]
+    AUDIT[доказательства и журнал]
+  end
+  subgraph EXTERNAL[Отдельные артефакты]
+    MEDIA[исходные WAV и видео]
+    SAMPLES[референсные WAV]
+    RAW[prepared FLAC и raw JSON]
+    CHATS[chats.db]
+    CODE[код приложения]
+  end
+  EXTERNAL -. пути происхождения .-> DB
+```
+
 ## Карта доменов
 
 ```mermaid
@@ -94,21 +144,99 @@ erDiagram
 ## Таймлайн раунда
 
 ```mermaid
-timeline
-  title Типичный порядок фаз одной игры
-  Вступление : introduction
-  День 1 : day
-  Голосование 1 : voting
-  Последние слова : last_words, если игрок выбыл
-  Ночь 1 : night
-  День 2 : day
-  Результат : result или winner_announcement
-  Послеигровое обсуждение : postgame, вне игровых фактов
+flowchart LR
+  I[introduction] --> D1[day 1]
+  D1 --> V1[voting 1]
+  V1 --> L1[last_words]
+  L1 --> N1[night 1]
+  N1 --> D2[day 2]
+  D2 --> V2[voting 2]
+  V2 --> MORE[следующие циклы]
+  MORE --> R[result]
+  R --> P[postgame]
 ```
 
 `vote_out` привязан к дневному голосованию. `night_kill` — к ночи. Фаза
 `last_words` объясняет, почему реплика после выбытия не является вторым
 событием устранения.
+
+## Фаза и событие — разные уровни
+
+```mermaid
+flowchart TB
+  V[video] --> R[mafia_round]
+  R --> P1[phase: voting 1]
+  R --> P2[phase: last_words 1]
+  R --> P3[phase: night 1]
+  P1 --> E1[event: vote_out A]
+  P2 -. подтверждение результата .-> E1
+  P3 --> E2[event: night_kill B]
+  E1 --> T1[target: participant A]
+  E2 --> T2[target: participant B]
+```
+
+`mafia_phase` — протяжённый интервал. `mafia_event` — единичный факт.
+Событие всегда принадлежит раунду, но его `phase_id` может быть `NULL`, если
+точная фаза не доказана.
+
+## Решающее дерево `event_type`
+
+```mermaid
+flowchart TD
+  F[Факт из контекста] --> Q{Что произошло?}
+  Q -- начало партии --> GS[game_start]
+  Q -- конец партии --> GE[game_end]
+  Q -- ночное устранение мафией --> NK[night_kill]
+  Q -- дневное выбытие голосованием --> VO[vote_out]
+  Q -- проверка шерифа --> SC[sheriff_check]
+  Q -- проверка дона --> DC[don_check]
+  Q -- раскрытие роли --> RR[role_reveal]
+  Q -- объявление победы --> WA[winner_announcement]
+  Q -- иной значимый факт --> O[other]
+  GS --> MAP[раунд, время, фаза]
+  GE --> MAP
+  NK --> MAP
+  VO --> MAP
+  SC --> MAP
+  DC --> MAP
+  RR --> MAP
+  WA --> MAP
+  O --> MAP
+  MAP --> WHO[actor и target, только если доказаны]
+  WHO --> EVID[реплика и таймкод]
+  EVID --> STATUS[review_status]
+```
+
+## Полнота `vote_out` в v1.6.0
+
+```mermaid
+flowchart LR
+  ALL[113 раундов] --> ZERO[0 событий<br/>3 раунда]
+  ALL --> ONE[1 событие<br/>29 раундов]
+  ALL --> TWO[2 события<br/>60 раундов]
+  ALL --> THREE[3 события<br/>21 раунд]
+  PH[Есть фаза voting] --> OK[Раундов без vote_out: 0]
+```
+
+Ограничения «один `vote_out` на раунд» нет. Если видео доказывает вторую
+дневную казнь, а строка отсутствует, нужна аудиторская вставка.
+
+## ER-диаграмма речи и RAG
+
+```mermaid
+erDiagram
+  SOURCE_FOLDERS ||--o{ VIDEOS : discovers
+  VIDEOS ||--o{ VIDEO_SPEAKERS : diarizes
+  VIDEO_SPEAKERS ||--o{ UTTERANCES : speaks
+  UTTERANCES ||--o{ WORDS : tokenizes
+  SPEAKER_PROFILES ||--o{ VIDEO_SPEAKERS : recognizes
+  SPEAKER_PROFILES ||--o{ SPEAKER_SAMPLES : owns
+  SPEAKER_SAMPLES ||--|| SAMPLE_AUDITS : evaluated_by
+  UTTERANCES ||--o{ SEMANTIC_DOCUMENT_UTTERANCES : contributes
+  SEMANTIC_DOCUMENTS ||--o{ SEMANTIC_DOCUMENT_UTTERANCES : cites
+  SEMANTIC_DOCUMENTS ||--o{ EMBEDDING_VECTORS : embeds
+  SEMANTIC_DOCUMENTS ||--o{ EMBEDDING_JOBS : queues
+```
 
 ## Семантический поиск
 
@@ -165,3 +293,17 @@ flowchart LR
 Маска не переписывает профиль глобально. Одно и то же отображаемое имя может
 иметь разные раскрытия в разных видео, поэтому исторические эпизоды хранятся
 отдельно.
+
+## Защитные механизмы схемы
+
+```mermaid
+flowchart TD
+  WRITE[Изменение] --> FK[Foreign keys]
+  WRITE --> TRIGGER{Триггеры}
+  TRIGGER --> PROOF[Одобрение требует evidence]
+  TRIGGER --> LEDGER[audit_ledger append-only]
+  TRIGGER --> FTS[Автосинхронизация FTS5]
+  FK --> C[CASCADE: дочерние технические строки]
+  FK --> R[RESTRICT: доказательства и факты]
+  FK --> N[SET NULL: связь стала неизвестной]
+```
